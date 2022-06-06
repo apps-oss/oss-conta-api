@@ -48,8 +48,8 @@ class DailyMovementController extends ResourceController
         }
         else{
             // ! No results found
-            $data = data(NOT_FOUND, 'No se encontraron registros');
-            return $this->respond($data, NOT_FOUND);
+            $data = data(OK, 'No se encontraron registros');
+            return $this->respond($data, OK);
         }
     }
 

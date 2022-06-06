@@ -25,7 +25,7 @@ to your `app` folder. The affected files can be copied or merged from
 
 ## Setup
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
+Copy `env.example` to `.env` and tailor for your app, specifically the baseURL
 and any database settings.
 
 ## Important Change with index.php

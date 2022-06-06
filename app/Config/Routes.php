@@ -93,7 +93,7 @@ $routes->group('accounting_catalogs', ['namespace' => 'App\Controllers'], functi
 
 //DailyMovementsController
 $routes->group('daily_movements', ['namespace' => 'App\Controllers'], function ($routes) {
-    $routes->post('/', 'DailyMovementController::index', ['as' => 'view_daily_movement']);
+    $routes->get('/', 'DailyMovementController::index', ['as' => 'view_daily_movement']);
     $routes->get('create', 'DailyMovementController::create', ['as' => 'new_daily_movement']);
     $routes->post('create', 'DailyMovementController::store', ['as' => 'store_daily_movement']);
     $routes->get('edit/(:any)', 'DailyMovementController::edit/$1', ['as' => 'edit_daily_movement']);

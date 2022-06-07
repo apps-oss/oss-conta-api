@@ -27,6 +27,7 @@ class DocumentTypeController extends ResourceController
         //session();
         $this->documentModel = model('DocumentTypeModel');
         $this->user = model('UsersModel');
+        $this->enforcer = \Config\Services::enforcer();
         helper('restful');
     }
 
@@ -37,9 +38,6 @@ class DocumentTypeController extends ResourceController
      */
     public function index()
     {
-        //
-        $document = $this->documentModel->findAll();
-
         $auth = Authorization::verifyToken();
         if ($auth['hasError']) {
             return $this->respond($auth['data'], $auth['code']);
@@ -47,48 +45,14 @@ class DocumentTypeController extends ResourceController
         // id user
         $user_id = $auth['data'];
 
-        $users = $this->user->find($user_id);
-        //creation of object status
-        $statusArray = array(
-            "view" => $users->permissionUrl('/accounting/document_type/info'),
-            "edit" => $users->permissionUrl('/accounting/document_type/edit'),
-            "delete" => $users->permissionUrl('/accounting/document_type/delete')
-        );
+        if (!$this->enforcer->enforce($user_id, "document_type", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
 
-        if(!empty($document)){
-            foreach ($document as $key => $arrDocument) {
-                $document[$key]->permissions = array(
-                    "view" => array(
-                        "status" => $statusArray['view'],
-                        "url" => BASE_URL_API . route_to(
-                            "info_document_type",
-                            $arrDocument->id_document
-                        ),
-                    ),
-                    "edit" => array(
-                        "status" => $statusArray['edit'],
-                        "url" => BASE_URL_API . route_to(
-                            "edit_document_type",
-                            $arrDocument->id_document
-                        ),
-                    ),
-                    "delete" => array(
-                        "status" => $statusArray['delete'],
-                        "url" => base_url(route_to(
-                            "delete_document_type",
-                            $arrDocument->id_document
-                        )),
-                    )
-                );
-            }
-            $data = data(OK, 'Datos Devueltos', $document);
-            return $this->respond($data, OK);
-        }
-        else{
-            // ! No results found
-            $data = data(NOT_FOUND, 'No se encontraron registros');
-            return $this->respond($data, NOT_FOUND);
-        }
+        $document = $this->documentModel->findAll();
+
+        $data = data(OK, 'Datos Devueltos', $document);
+        return $this->respond($data, OK);
     }
 
     /**

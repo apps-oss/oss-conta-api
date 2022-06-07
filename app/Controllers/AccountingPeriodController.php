@@ -31,6 +31,8 @@ class AccountingPeriodController extends ResourceController
 
         $this->user = model('UsersModel');
 
+        $this->enforcer = \Config\Services::enforcer();
+
         helper('restful');
     }
 
@@ -41,9 +43,6 @@ class AccountingPeriodController extends ResourceController
      */
     public function index()
     {
-        //
-        $accounting = $this->accountingPeriod
-            ->paginate(config("GlobalSettings")->regPerPage);
 
         $auth = Authorization::verifyToken();
         if ($auth['hasError']) {
@@ -52,47 +51,16 @@ class AccountingPeriodController extends ResourceController
         // id user
         $user_id = $auth['data'];
 
-        $users = $this->user->find($user_id);
-        //creation of object status
-        $statusArray = array(
-            "view" => $users->permissionUrl('/accounting/accounting_period/info'),
-            "edit" => $users->permissionUrl('/accounting/accounting_period/edit'),
-            "delete" => $users->permissionUrl('/accounting/accounting_period/delete')
-        );
-
-        if (!empty($accounting)) {
-            foreach ($accounting as $key => $arrAccounting) {
-
-                $accounting[$key]->permissions = array(
-                    "view" => array(
-                        "status" => $statusArray['view'],
-                        "url" => BASE_URL_API
-                            . '/accounting_period/info/'
-                            . $arrAccounting->id_period,
-                    ),
-                    "edit" => array(
-                        "status" => $statusArray['edit'],
-                        "url" => BASE_URL_API
-                            . '/accounting_catalog/edit/'
-                            . $arrAccounting->id_period,
-                    ),
-                    "delete" => array(
-                        "status" => $statusArray['delete'],
-                        "url" => base_url(route_to(
-                            "delete_accounting_period",
-                            $arrAccounting->id_period
-                        )),
-                    )
-                );
-            }
-
-            $data = data(OK, 'Datos Devueltos', $accounting);
-            return $this->respond($data, OK);
-        } else {
-            // ! No results found
-            $data = data(NOT_FOUND, 'No se encontraron registros');
-            return $this->respond($data, NOT_FOUND);
+        if (!$this->enforcer->enforce($user_id, "accounting_period", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
         }
+
+        $accounting = $this->accountingPeriod
+            ->paginate(config("GlobalSettings")->regPerPage);
+
+        $data = data(OK, 'Datos Devueltos', $accounting);
+        return $this->respond($data, OK);
+        //creation of object status
     }
 
     /**
@@ -122,6 +90,19 @@ class AccountingPeriodController extends ResourceController
      */
     public function store()
     {
+        // Authorization logic
+        $auth = Authorization::verifyToken();
+        if ($auth['hasError']) {
+            return $this->respond($auth['data'], $auth['code']);
+        }
+        // id user
+        $user_id = $auth['data'];
+
+        // el permiso es el nombre de la tabla y la funcion a la que se desea acceder
+        if (!$this->enforcer->enforce($user_id, "daily_movement", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
+
         // validate the form data
         $validation = service('validation');
         $validation->setRules([
@@ -143,16 +124,10 @@ class AccountingPeriodController extends ResourceController
             return $this->respond($data, BAD_REQUEST);
         }
 
-        $auth = Authorization::verifyToken();
-        if ($auth['hasError']) {
-            return $this->respond($auth['data'], $auth['code']);
-        }
-        // Accedemos al id del usuario dentro del token
-        $user_id = $auth['data'];
-
         $accounting = (array) ($this->request->getVar());
         $accounting['created_by'] = $user_id;
         $accounting['updated_by'] = $user_id;
+        $accounting['status'] = 0;
 
         $accounting['correlative'] =  0;
 
@@ -180,17 +155,17 @@ class AccountingPeriodController extends ResourceController
      */
     public function edit($id = null)
     {
-         // Verify token
-         $auth = Authorization::verifyToken();
+        // Verify token
+        $auth = Authorization::verifyToken();
 
-         if ($auth['hasError']) {
-             return $this->respond($auth['data'], $auth['code']);
-         }
- 
-         $accounting = $this->accountingPeriod->find($id);
-         $dataE = array("encabezado" => $accounting);
-         $data = data(OK, 'Datos Devueltos', $dataE);
-         return $this->respond($data, OK);
+        if ($auth['hasError']) {
+            return $this->respond($auth['data'], $auth['code']);
+        }
+
+        $accounting = $this->accountingPeriod->find($id);
+        $dataE = array("encabezado" => $accounting);
+        $data = data(OK, 'Datos Devueltos', $dataE);
+        return $this->respond($data, OK);
     }
 
     /**
@@ -211,7 +186,7 @@ class AccountingPeriodController extends ResourceController
         $accounting['updated_by'] = $user_id;
 
         $accounting = new AccountingPeriod($accounting);
-        
+
         if ($this->accountingPeriod->save($accounting)) {
             $data = data(OK, "Registro actualizado correctamente");
             return $this->respond($data);
@@ -258,18 +233,17 @@ class AccountingPeriodController extends ResourceController
             //not exists
             $accounting->deleted_by = $user_id;
             $this->accountingPeriod->save($accounting);
-    
+
             // deleted accounting period in the database
             if ($this->accountingPeriod->delete($id)) {
                 $data = data(OK, "Registro eliminado correctamente", array());
                 return $this->respond($data);
             }
-        }
-        else{
+        } else {
             //exists
-            
+
         }
-        
+
         // ! No results found
         $data = data(BAD_REQUEST, 'Registro no pudo ser eliminado');
         return $this->respond($data, BAD_REQUEST);

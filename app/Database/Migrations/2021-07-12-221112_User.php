@@ -32,10 +32,6 @@ class User extends Migration
                 'constraint'     => 11,
                 'auto_increment' => true
             ),
-            'id_user_type' => array(
-                'type'       => 'INT',
-                'constraint' => 11,
-            ),
             'first_name' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '50',
@@ -54,9 +50,8 @@ class User extends Migration
                 'constraint' => '50',
             ],
             'password' => [
-                'type'       => 'VARCHAR',
-                'constraint' => '128',
-                'comment'    => 'SHA512',
+                'type'       => 'LONGTEXT',
+                'comment'    => 'SHA256',
             ],
             'picture' => [
                 'type'       => 'VARCHAR',
@@ -87,8 +82,6 @@ class User extends Migration
                 'type'   => 'DATETIME',
                 'null'   => true
             ),
-            'CONSTRAINT fk_user_type FOREIGN KEY (id_user_type) 
-             REFERENCES user_type (id_user_type) ON DELETE RESTRICT ON UPDATE CASCADE'
         ));
 
         // add primary key
@@ -97,32 +90,6 @@ class User extends Migration
         // create table
         $this->forge->createTable($this->table_name);
 
-        // insert first record
-        $this->db->table($this->table_name)->insert([
-            'id_user_type' => 1,
-            'first_name'  => 'ADMIN',
-            'last_name'   => 'ADMIN',
-            'user_name'   => 'ADMIN',
-            'email'       => 'admin@admin.com',
-            'password'    => 'f146d5f4a14c117a715dcb9d1554127b7b52a08bb3642ab86f32324c5d79efc1f2cba088b4368ec63de7ba34709cbb0eb8abf5d8f66fc2755827462a9611fe69',
-            'picture'     => '',
-            'status'      => 1,
-            'created_by'  => 1,
-            'updated_by'  => 1
-        ]);
-
-        // modify the user_type table to add foreign keys
-        $this->db->query('ALTER TABLE `user_type` ADD CONSTRAINT `fk_user_type_created` 
-        FOREIGN KEY(`created_by`) REFERENCES user(`id_user`) 
-        ON DELETE RESTRICT ON UPDATE CASCADE;');
-
-        $this->db->query('ALTER TABLE `user_type` ADD CONSTRAINT `fk_user_type_updated`
-        FOREIGN KEY(`updated_by`) REFERENCES user(`id_user`)
-        ON DELETE RESTRICT ON UPDATE CASCADE;');
-
-        $this->db->query('ALTER TABLE `user_type` ADD CONSTRAINT `fk_user_type_deleted`
-        FOREIGN KEY(`deleted_by`) REFERENCES user(`id_user`)
-        ON DELETE RESTRICT ON UPDATE CASCADE;');
     }
 
     /**

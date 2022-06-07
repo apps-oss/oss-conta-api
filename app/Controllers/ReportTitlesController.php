@@ -27,6 +27,7 @@ class ReportTitlesController extends ResourceController
         //session();
         $this->reportTitles = model('ReportTitlesModel');
         $this->user = model('UsersModel');
+        $this->enforcer = \Config\Services::enforcer();
         helper('restful');
     }
 
@@ -37,9 +38,6 @@ class ReportTitlesController extends ResourceController
      */
     public function index()
     {
-        //
-        $document = $this->reportTitles->findAll();
-
         $auth = Authorization::verifyToken();
         if ($auth['hasError']) {
             return $this->respond($auth['data'], $auth['code']);
@@ -47,48 +45,13 @@ class ReportTitlesController extends ResourceController
         // id user
         $user_id = $auth['data'];
 
-        $users = $this->user->find($user_id);
-        //creation of object status
-        $statusArray = array(
-            "view" => $users->permissionUrl('/accounting/report_titles/info'),
-            "edit" => $users->permissionUrl('/accounting/report_titles/edit'),
-            "delete" => $users->permissionUrl('/accounting/report_titles/delete')
-        );
+        if (!$this->enforcer->enforce($user_id, "report_titles", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
 
-        if(!empty($document)){
-            foreach ($document as $key => $arrDocument) {
-                $document[$key]->permissions = array(
-                    "view" => array(
-                        "status" => $statusArray['view'],
-                        "url" => BASE_URL_API . route_to(
-                            "info_report_titles",
-                            $arrDocument->id_title
-                        ),
-                    ),
-                    "edit" => array(
-                        "status" => $statusArray['edit'],
-                        "url" => BASE_URL_API . route_to(
-                            "edit_report_titles",
-                            $arrDocument->id_title
-                        ),
-                    ),
-                    "delete" => array(
-                        "status" => $statusArray['delete'],
-                        "url" => base_url(route_to(
-                            "delete_report_titles",
-                            $arrDocument->id_title
-                        )),
-                    )
-                );
-            }
-            $data = data(OK, 'Datos Devueltos', $document);
+        $document = $this->reportTitles->findAll();
+        $data = data(OK, 'Datos Devueltos', $document);
             return $this->respond($data, OK);
-        }
-        else{
-            // ! No results found
-            $data = data(NOT_FOUND, 'No se encontraron registros');
-            return $this->respond($data, NOT_FOUND);
-        }
     }
 
     /**

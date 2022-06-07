@@ -28,6 +28,8 @@ class DailyMovementController extends ResourceController
         $this->dailyMovement = model('DailyMovementsModel');
         $this->accountingPeriod = model('AccountingPeriodModel');
 
+        $this->enforcer = \Config\Services::enforcer();
+
         helper('restful');
     }
 
@@ -38,19 +40,33 @@ class DailyMovementController extends ResourceController
      */
     public function index()
     {
-        //
+        // Authorization logic
+        $auth = Authorization::verifyToken();
+        if ($auth['hasError']) {
+            return $this->respond($auth['data'], $auth['code']);
+        }
+        // id user
+        $user_id = $auth['data'];
+
+        // el permiso es el nombre de la tabla y la funcion a la que se desea acceder
+        if (!$this->enforcer->enforce($user_id, "daily_movement", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
+
+        // Controller Logic
         $accounting = $this->accountingPeriod->where("status", 0)->first();
-        $dailyMovements = $accounting->dailyMovements;
-        if(!empty($accounting)){
-            $dataArray = array('period' => $accounting, 'movements' => $dailyMovements);
-            $data = data(OK, 'Datos Devueltos', $dataArray);
-            return $this->respond($data, OK);
-        }
-        else{
+
+        if (empty($accounting)) {
             // ! No results found
-            $data = data(OK, 'No se encontraron registros');
+            $data = data(BAD_REQUEST, 'No existe un periodo contable disponible, por favor ingrese uno');
             return $this->respond($data, OK);
         }
+
+        $dailyMovements = $accounting->dailyMovements;
+
+        $dataArray = array('period' => $accounting, 'movements' => $dailyMovements);
+        $data = data(OK, 'Datos Devueltos', $dataArray);
+        return $this->respond($data, OK);
     }
 
     /**
@@ -80,7 +96,17 @@ class DailyMovementController extends ResourceController
      */
     public function store()
     {
-        //
+        $auth = Authorization::verifyToken();
+        if ($auth['hasError']) {
+            return $this->respond($auth['data'], $auth['code']);
+        }
+        // Accedemos al id del usuario dentro del token
+        $user_id = $auth['data'];
+
+        // el permiso es el nombre de la tabla y la funcion a la que se desea acceder
+        if (!$this->enforcer->enforce($user_id, "daily_movement", "store")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
         // validate the form data
         $validation = service('validation');
         $validation->setRules([
@@ -106,17 +132,10 @@ class DailyMovementController extends ResourceController
             return $this->respond($data, BAD_REQUEST);
         }
 
-        $auth = Authorization::verifyToken();
-        if ($auth['hasError']) {
-            return $this->respond($auth['data'], $auth['code']);
-        }
-        // Accedemos al id del usuario dentro del token
-        $user_id = $auth['data'];
-
         $accounting = $this->accountingPeriod->where("status", 0)->first();
-        if(empty($accounting)){
+        if (empty($accounting)) {
             $data = data(BAD_REQUEST, 'No existe un periodo contable activo');
-            return $this->respond($data, BAD_REQUEST); 
+            return $this->respond($data, BAD_REQUEST);
         }
 
         $movement = array(
@@ -140,7 +159,7 @@ class DailyMovementController extends ResourceController
 
         // ! No results found
         $data = data(BAD_REQUEST, 'Registro no pudo ser insertado');
-        return $this->respond($data, BAD_REQUEST);  
+        return $this->respond($data, BAD_REQUEST);
     }
 
     /**

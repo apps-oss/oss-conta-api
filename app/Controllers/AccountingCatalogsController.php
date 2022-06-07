@@ -28,6 +28,7 @@ class AccountingCatalogsController extends ResourceController
         $this->levelModel = model('LevelModel');
         $this->accountingCatalogsModel = model('AccountingCatalogsModel');
         $this->user = model('UsersModel');
+        $this->enforcer = \Config\Services::enforcer();
         helper('restful');
     }
 
@@ -38,51 +39,27 @@ class AccountingCatalogsController extends ResourceController
      */
     public function index()
     {
-        $accounting = $this->accountingCatalogsModel
-            ->orderBy('code', 'ASC')
-            ->paginate(config("GlobalSettings")->regPerPage);
 
+        // Authorization logic
         $auth = Authorization::verifyToken();
         if ($auth['hasError']) {
             return $this->respond($auth['data'], $auth['code']);
         }
-
-        $data = data(OK, 'Datos Devueltos', $accounting);
-        return $this->respond($data, OK);
         // id user
         $user_id = $auth['data'];
 
-        $users = $this->user->find($user_id);
-        //creation of object status
-        $statusArray = array(
-            "view" => $users->permissionUrl('/accounting/accounting_catalog/info'),
-            "edit" => $users->permissionUrl('/accounting/accounting_catalog/edit'),
-        );
-
-        if (!empty($accounting)) {
-            foreach ($accounting as $key => $arrAccounting) {
-                $accounting[$key]->permissions = array(
-                    "view" => array(
-                        "status" => $statusArray['view'],
-                        "url" => BASE_URL_API
-                            . '/accounting_catalog/info/'
-                            . $arrAccounting->id_catalog,
-                    ),
-                    "edit" => array(
-                        "status" => $statusArray['edit'],
-                        "url" => BASE_URL_API
-                            . '/accounting_catalog/edit/'
-                            . $arrAccounting->id_catalog,
-                    )
-                );
-            }
-            $data = data(OK, 'Datos Devueltos', $accounting);
-            return $this->respond($data, OK);
-        } else {
-            // ! No results found
-            $data = data(NOT_FOUND, 'No se encontraron registros');
-            return $this->respond($data, NOT_FOUND);
+        if (!$this->enforcer->enforce($user_id, "accounting_catalog", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
         }
+
+        // Controller Logic
+        $accounting = $this->accountingCatalogsModel
+            ->orderBy('code', 'ASC')
+            ->paginate(config("GlobalSettings")->regPerPage);
+
+        $data = data(OK, 'Datos Devueltos', $accounting);
+        return $this->respond($data, OK);
+
     }
 
     public function getCatalog()

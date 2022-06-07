@@ -37,7 +37,7 @@ $routes->get('verify', 'AuthController::verify');
 
 //DocumentTypeController
 $routes->group('document_type', ['namespace' => 'App\Controllers'], function ($routes) {
-    $routes->post('/', 'DocumentTypeController::index', ['as' => 'document_type']);
+    $routes->get('/', 'DocumentTypeController::index', ['as' => 'document_type']);
     $routes->get('create', 'DocumentTypeController::create', ['as' => 'new_document_type']);
     $routes->post('create', 'DocumentTypeController::store', ['as' => 'store_document_type']);
     $routes->get('edit/(:any)', 'DocumentTypeController::edit/$1', ['as' => 'edit_document_type']);
@@ -48,7 +48,7 @@ $routes->group('document_type', ['namespace' => 'App\Controllers'], function ($r
 
 //ReportTitlesController
 $routes->group('report_titles', ['namespace' => 'App\Controllers'], function ($routes) {
-    $routes->post('/', 'ReportTitlesController::index', ['as' => 'view_report_titles']);
+    $routes->get('/', 'ReportTitlesController::index', ['as' => 'view_report_titles']);
     $routes->get('create', 'ReportTitlesController::create', ['as' => 'new_report_titles']);
     $routes->post('create', 'ReportTitlesController::store', ['as' => 'store_report_titles']);
     $routes->get('edit/(:any)', 'ReportTitlesController::edit/$1', ['as' => 'edit_report_titles']);
@@ -59,7 +59,7 @@ $routes->group('report_titles', ['namespace' => 'App\Controllers'], function ($r
 
 //ClosingCodesController
 $routes->group('closing_codes', ['namespace' => 'App\Controllers'], function ($routes) {
-    $routes->post('/', 'ClosingCodesController::index', ['as' => 'view_closing_codes']);
+    $routes->get('/', 'ClosingCodesController::index', ['as' => 'view_closing_codes']);
     $routes->get('create', 'ClosingCodesController::create', ['as' => 'new_closing_codes']);
     $routes->post('create', 'ClosingCodesController::store', ['as' => 'store_closing_codes']);
     $routes->get('edit/(:any)', 'ClosingCodesController::edit/$1', ['as' => 'edit_closing_codes']);
@@ -70,7 +70,7 @@ $routes->group('closing_codes', ['namespace' => 'App\Controllers'], function ($r
 
 //LevelController
 $routes->group('level', ['namespace' => 'App\Controllers'], function ($routes) {
-    $routes->post('/', 'LevelController::index', ['as' => 'view_level']);
+    $routes->get('/', 'LevelController::index', ['as' => 'view_level']);
     $routes->get('create', 'LevelController::create', ['as' => 'new_level']);
     $routes->post('create', 'LevelController::store', ['as' => 'store_level']);
     $routes->get('edit/(:any)', 'LevelController::edit/$1', ['as' => 'edit_level']);
@@ -80,7 +80,7 @@ $routes->group('level', ['namespace' => 'App\Controllers'], function ($routes) {
 
 //AccountingCatalogsController
 $routes->group('accounting_catalogs', ['namespace' => 'App\Controllers'], function ($routes) {
-    $routes->post('/', 'AccountingCatalogsController::index', ['as' => 'view_accounting_catalogs']);
+    $routes->get('/', 'AccountingCatalogsController::index', ['as' => 'view_accounting_catalogs']);
     $routes->get('create', 'AccountingCatalogsController::create', ['as' => 'new_accounting_catalogs']);
     $routes->post('create', 'AccountingCatalogsController::store', ['as' => 'store_accounting_catalogs']);
     $routes->get('edit/(:any)', 'AccountingCatalogsController::edit/$1', ['as' => 'edit_accounting_catalogs']);
@@ -104,7 +104,7 @@ $routes->group('daily_movements', ['namespace' => 'App\Controllers'], function (
 
 //AccountingPeriodController
 $routes->group('accounting_period', ['namespace' => 'App\Controllers'], function ($routes) {
-    $routes->post('/', 'AccountingPeriodController::index', ['as' => 'view_accounting_period']);
+    $routes->get('/', 'AccountingPeriodController::index', ['as' => 'view_accounting_period']);
     $routes->get('create', 'AccountingPeriodController::create', ['as' => 'new_accounting_period']);
     $routes->post('create', 'AccountingPeriodController::store', ['as' => 'store_accounting_period']);
     $routes->get('edit/(:any)', 'AccountingPeriodController::edit/$1', ['as' => 'edit_accounting_period']);

@@ -23,6 +23,29 @@ class User extends Entity
         }
         return $this;
     }
+
+    /**
+     * set password
+     *
+     * use hash_pbkdf2 to encrypt passwords, the salt data and the number
+     * of iterations is in the constants file
+     *
+     * @param string password to encrypt
+     *
+     * @return void
+     *
+     */
+    protected function setPassword(string $password)
+    {
+
+        $this->attributes['password'] = hash_pbkdf2(
+            "sha256",
+            $password,
+            SALT,
+            HASH_ITERATIONS,
+            128
+        );
+    }
     
     /**
      * check if the user has permissions to access a route

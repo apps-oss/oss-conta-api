@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use CodeIgniter\Model;
@@ -7,10 +8,10 @@ use App\Entities\User;
 /**
  * Users Model
  * 
- * @package		FUPAPP
+ * @package		CONTAPP
  * @subpackage	Models
  * @category	Models
- * @author		FUPAPP Dev Team
+ * @author      Ruben Mulato, OSS DEV
  */
 class UsersModel extends Model
 {
@@ -60,6 +61,43 @@ class UsersModel extends Model
     }
 
     /**
+     * Search user and check if the password is correct.
+     *
+     * use hash_pbkdf2 to encrypt passwords, the salt data and the number
+     * of iterations is in the constants file
+     *
+     * @param string $user user name
+     * @param string password to compare
+     *
+     * @return void
+     *
+     */
+    public function login(string $user, string $password)
+    {
+        $user = $this->getUserBy('user_name', $user);
+
+        // if the user is not found, return null
+        if (!$user) {
+            return null;
+        }
+
+        // if the user is found, check if the password is correct
+        $pass = hash_pbkdf2("sha256",$password,'.:6S@tz9M/PM%-*GebtM/PDM.bCfmg[D',20,128);
+
+        // echo $pass;
+        // echo "<br>";
+        // echo $user->password;
+        // exit;
+
+        if ($user->password === $pass) {
+            return $user;
+        }
+
+        // if the password is incorrect, return null
+        return null;
+    }
+
+    /**
      * Returns paginated data
      * 
      * @param int     $star    initial register
@@ -71,18 +109,18 @@ class UsersModel extends Model
     public function getPaginate(int $start, int $length, string $search)
     {
         // get page number
-        $page = $start = 0 ? 1 : $start / $length + 1 ;
+        $page = $start = 0 ? 1 : $start / $length + 1;
 
         // if a search parameter was sent
         if ($search != '') {
             $this->like('first_name', $search, 'both')
-            ->orLike('last_name', $search, 'both')
-            ->orLike('user_name', $search, 'both');
+                ->orLike('last_name', $search, 'both')
+                ->orLike('user_name', $search, 'both');
         }
 
         // get pagination
         $result = $this->paginate($length, 'default', $page);
-        
+
         return $result;
     }
 }

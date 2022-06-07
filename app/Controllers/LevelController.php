@@ -28,6 +28,7 @@ class LevelController extends ResourceController
     {
         $this->levelModel = model('LevelModel');
         $this->accountingCatalogs = model('AccountingCatalogsModel');
+        $this->enforcer = \Config\Services::enforcer();
         helper('restful');
     }
 
@@ -39,7 +40,17 @@ class LevelController extends ResourceController
      */
     public function index()
     {
-        //
+        $auth = Authorization::verifyToken();
+        if ($auth['hasError']) {
+            return $this->respond($auth['data'], $auth['code']);
+        }
+        // id user
+        $user_id = $auth['data'];
+
+        if (!$this->enforcer->enforce($user_id, "level", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
+
         $level = $this->levelModel->findAll();
         if(!empty($level)){
             foreach ($level as $key => $arrLevel) {

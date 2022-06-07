@@ -13,6 +13,10 @@
  // siempre buscar permisos del usuario, por lo que es necesario contar siempre
  // con un usuario de prueba
 
+//  TODO: el sistema tiene una administracion defectuosa de los permisos, asi que integraremos spatie
+
+// 
+
 namespace App\Controllers;
 
 use CodeIgniter\RESTful\ResourceController;
@@ -22,6 +26,8 @@ class AuthController extends ResourceController
 {
     public function __construct()
     {
+        $this->enforcer = \Config\Services::enforcer();
+        $this->model = model('UsersModel');
         helper('restful');
     }
 
@@ -48,15 +54,23 @@ class AuthController extends ResourceController
             return $this->respond($data, BAD_REQUEST);
         }
 
-        $user = [
-            "user_id" => 1,
-            "name" => "Juanita",
-            "user" => "juanit@",
-            "token" => Authorization::generateToken(1),
-        ];
+        $user = $this->model->login($this->request->getPost('user'), $this->request->getPost('password'));
 
-        if (!empty($user)) {
-            $data = data(OK, 'Bienvenido al sistema', $user);
+        if ($user != null) {
+            // add token to $user
+            $user->token = Authorization::generateToken($user->id_user);
+            $this->enforcer->addPermissionForUser($user->id_user, 'daily_movements', 'index');
+
+            $user_array = [
+                'id_user' => $user->id_user,
+                'user' => $user->user_name,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'token' => $user->token,
+                'email' => $user->email,
+            ];
+
+            $data = data(OK, 'Bienvenido al sistema', $user_array);
             return $this->respond($data, OK);
         }
 
@@ -79,12 +93,10 @@ class AuthController extends ResourceController
         $user_id = $auth['data'];
 
         // Find user
-        $user = [
-            "name" => "juanito",
-            "user" => "adad",
-        ];
+        $user = $this->model->getUserBy('id_user', $user_id);
 
         if (!empty($user)) {
+
             $data = data(OK, "Información del usuario", $user);
             return $this->respond($data);
         }

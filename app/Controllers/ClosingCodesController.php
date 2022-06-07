@@ -39,9 +39,6 @@ class ClosingCodesController extends ResourceController
      */
     public function index()
     {
-        //
-        $closing = $this->closingCodes->findAll();
-
         $auth = Authorization::verifyToken();
         if ($auth['hasError']) {
             return $this->respond($auth['data'], $auth['code']);
@@ -49,47 +46,15 @@ class ClosingCodesController extends ResourceController
         // id user
         $user_id = $auth['data'];
 
-        $users = $this->user->find($user_id);
-        //creation of object status
-        $statusArray = array(
-            "view" => $users->permissionUrl('/accounting/closing_codes/info'),
-            "edit" => $users->permissionUrl('/accounting/closing_codes/edit'),
-            "delete" => $users->permissionUrl('/accounting/closing_codes/delete')
-        );
-
-        if (!empty($closing)) {
-            foreach ($closing as $key => $arrClosing) {
-                $closing[$key]->permissions = array(
-                    "view" => array(
-                        "status" => $statusArray['view'],
-                        "url" => BASE_URL_API . route_to(
-                            "info_closing_codes",
-                            $arrClosing->id_code
-                        ),
-                    ),
-                    "edit" => array(
-                        "status" => $statusArray['edit'],
-                        "url" => BASE_URL_API . route_to(
-                            "edit_closing_codes",
-                            $arrClosing->id_code
-                        ),
-                    ),
-                    "delete" => array(
-                        "status" => $statusArray['delete'],
-                        "url" => base_url(route_to(
-                            "delete_closing_codes",
-                            $arrClosing->id_code
-                        )),
-                    )
-                );
-            }
-            $data = data(OK, 'Datos Devueltos', $closing);
-            return $this->respond($data, OK);
-        } else {
-            // ! No results found
-            $data = data(NOT_FOUND, 'No se encontraron registros');
-            return $this->respond($data, NOT_FOUND);
+        if (!$this->enforcer->enforce($user_id, "accounting_period", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
         }
+
+        $closing = $this->closingCodes->findAll();
+
+        $data = data(OK, 'Datos Devueltos', $closing);
+        return $this->respond($data, OK);
+        
     }
 
     /**

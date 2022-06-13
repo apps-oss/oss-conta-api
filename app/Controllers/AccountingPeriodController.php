@@ -55,8 +55,7 @@ class AccountingPeriodController extends ResourceController
             return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
         }
 
-        $accounting = $this->accountingPeriod
-            ->paginate(config("GlobalSettings")->regPerPage);
+        $accounting = $this->accountingPeriod->findAll();
 
         $data = data(OK, 'Datos Devueltos', $accounting);
         return $this->respond($data, OK);
@@ -99,7 +98,7 @@ class AccountingPeriodController extends ResourceController
         $user_id = $auth['data'];
 
         // el permiso es el nombre de la tabla y la funcion a la que se desea acceder
-        if (!$this->enforcer->enforce($user_id, "daily_movement", "index")) {
+        if (!$this->enforcer->enforce($user_id, "accounting_period", "store")) {
             return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
         }
 
@@ -113,7 +112,11 @@ class AccountingPeriodController extends ResourceController
             'end_date'     => [
                 'label' => 'fecha fin',
                 'rules' => 'required'
-            ]
+            ],
+            'correlative'     => [
+                'label' => 'correlativo',
+                'rules' => 'required'
+            ],
         ]);
 
         //! if validation fails
@@ -128,8 +131,6 @@ class AccountingPeriodController extends ResourceController
         $accounting['created_by'] = $user_id;
         $accounting['updated_by'] = $user_id;
         $accounting['status'] = 0;
-
-        $accounting['correlative'] =  0;
 
         $accounting = new AccountingPeriod($accounting);
 

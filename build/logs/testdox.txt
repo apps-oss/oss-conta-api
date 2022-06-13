@@ -1,0 +1,10 @@
+Example Session
+ [x] Session simple
+
+Auth
+ [ ] Login
+
+Health
+ [x] Is defined app path
+ [x] Base url has been set
+

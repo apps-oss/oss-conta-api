@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of the OSS
  *
@@ -8,10 +9,10 @@
  * that has been distributed with this source code.
  */
 
- // TODO: el sistema carece de autenticacion, y de creacion de usuarios
- // al momento solo contiene un usuario de prueba, sin embargo se intenta
- // siempre buscar permisos del usuario, por lo que es necesario contar siempre
- // con un usuario de prueba
+// TODO: el sistema carece de autenticacion, y de creacion de usuarios
+// al momento solo contiene un usuario de prueba, sin embargo se intenta
+// siempre buscar permisos del usuario, por lo que es necesario contar siempre
+// con un usuario de prueba
 
 //  TODO: el sistema tiene una administracion defectuosa de los permisos, asi que integraremos spatie
 
@@ -54,12 +55,23 @@ class AuthController extends ResourceController
             return $this->respond($data, BAD_REQUEST);
         }
 
-        $user = $this->model->login($this->request->getPost('user'), $this->request->getPost('password'));
+        $user = $this->model->login($this->request->getVar('user'), $this->request->getVar('password'));
 
         if ($user != null) {
             // add token to $user
             $user->token = Authorization::generateToken($user->id_user);
             $this->enforcer->addPermissionForUser($user->id_user, 'daily_movements', 'index');
+
+            $role = $this->enforcer->getRolesForUser($user->id_user)[0] ?? 'user';
+
+            $policies = $this->enforcer->getPermissionsForUser($role);
+            $result = [];
+            foreach ($policies as $policy) {
+                // we will add an action in each of the modules array
+                $result[$policy[1]][] = $policy[2];
+            }
+
+            $policies = $result;
 
             $user_array = [
                 'id_user' => $user->id_user,
@@ -68,6 +80,8 @@ class AuthController extends ResourceController
                 'last_name' => $user->last_name,
                 'token' => $user->token,
                 'email' => $user->email,
+                'role' => $role,
+                'permissions' => $policies,
             ];
 
             $data = data(OK, 'Bienvenido al sistema', $user_array);
@@ -77,8 +91,6 @@ class AuthController extends ResourceController
         // ! No results found
         $data = data(BAD_REQUEST, 'Usuario o contraseña incorrectos');
         return $this->respond($data, BAD_REQUEST);
-
-        
     }
 
     public function verify()

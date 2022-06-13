@@ -17,6 +17,6 @@ class Jwt extends BaseConfig
      *
      * @var string
      */
-    public $expiration_time ="+7 day";
+    public $expiration_time ="+30 day";
 
 }

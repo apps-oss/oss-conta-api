@@ -36,6 +36,7 @@ class DefaultSeeder extends Seeder
             'closing_codes',
             'reports_titles',
             'level',
+            'policies'
         ];
 
         foreach ($modules as $module) {

@@ -35,6 +35,14 @@ $routes->get('/', 'Home::index');
 $routes->post('login', 'AuthController::index');
 $routes->get('verify', 'AuthController::verify');
 
+// PoliciesController
+$routes->group('policies', function ($routes) {
+    $routes->get('', 'PoliciesController::index');
+    $routes->get('(:any)', 'PoliciesController::show/$1');
+    $routes->post('', 'PoliciesController::store');
+    $routes->put('(:any)', 'PoliciesController::update/$1');
+});
+
 //DocumentTypeController
 $routes->group('document_type', ['namespace' => 'App\Controllers'], function ($routes) {
     $routes->get('/', 'DocumentTypeController::index', ['as' => 'document_type']);

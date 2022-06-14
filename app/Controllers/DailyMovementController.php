@@ -59,7 +59,7 @@ class DailyMovementController extends ResourceController
         if (empty($accounting)) {
             // ! No results found
             $data = data(BAD_REQUEST, 'No existe un periodo contable disponible, por favor ingrese uno');
-            return $this->respond($data, OK);
+            return $this->respond($data, BAD_REQUEST);
         }
 
         $dailyMovements = $accounting->dailyMovements;

@@ -130,9 +130,14 @@ class AccountingPeriodController extends ResourceController
         $accounting = (array) ($this->request->getVar());
         $accounting['created_by'] = $user_id;
         $accounting['updated_by'] = $user_id;
-        $accounting['status'] = 0;
+        $accounting['status'] = 1;
 
         $accounting = new AccountingPeriod($accounting);
+
+        if(!$this->accountingPeriod->where('status', 1)->set('status',0)->update()){
+            $data = data(BAD_REQUEST, 'Error al cambiar desactivar los periodos contables anteriores');
+            return $this->respond($data, BAD_REQUEST);
+        }
 
         // register accounting type in the database
         if ($this->accountingPeriod->save($accounting)) {
@@ -170,25 +175,29 @@ class AccountingPeriodController extends ResourceController
     }
 
     /**
-     * Add or update a model resource, from "posted" properties
+     * partially or fully update a resource object, from "posted" parameters
      *
      * @return mixed
      */
     public function update($id = null)
     {
+        // Authorization logic
         $auth = Authorization::verifyToken();
         if ($auth['hasError']) {
             return $this->respond($auth['data'], $auth['code']);
         }
-        // Accedemos al id del usuario dentro del token
+        // id user
         $user_id = $auth['data'];
+
+        // el permiso es el nombre de la tabla y la funcion a la que se desea acceder
+        if (!$this->enforcer->enforce($user_id, "accounting_period", "update")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
 
         $accounting = (array) ($this->request->getVar());
         $accounting['updated_by'] = $user_id;
 
-        $accounting = new AccountingPeriod($accounting);
-
-        if ($this->accountingPeriod->save($accounting)) {
+        if ($this->accountingPeriod->update($id, $accounting)) {
             $data = data(OK, "Registro actualizado correctamente");
             return $this->respond($data);
         }
@@ -220,33 +229,39 @@ class AccountingPeriodController extends ResourceController
         if ($auth['hasError']) {
             return $this->respond($auth['data'], $auth['code']);
         }
-        if (!$accounting = $this->accountingPeriod->find($id)) {
-            $data = data(NOT_FOUND, 'Registro no pudo ser eliminado');
-            return $this->respond($data, NOT_FOUND);
-        }
 
-        // Accedemos al id del usuario dentro del token
+        // id user
         $user_id = $auth['data'];
 
-        //explore the object
-        $dailyMovement = $this->dailyMovement->where('id_period', $id)->first();
-        if (!$dailyMovement) {
-            //not exists
-            $accounting->deleted_by = $user_id;
-            $this->accountingPeriod->save($accounting);
-
-            // deleted accounting period in the database
-            if ($this->accountingPeriod->delete($id)) {
-                $data = data(OK, "Registro eliminado correctamente", array());
-                return $this->respond($data);
-            }
-        } else {
-            //exists
-
+        // el permiso es el nombre de la tabla y la funcion a la que se desea acceder
+        if (!$this->enforcer->enforce($user_id, "accounting_period", "destroy")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
         }
 
-        // ! No results found
-        $data = data(BAD_REQUEST, 'Registro no pudo ser eliminado');
-        return $this->respond($data, BAD_REQUEST);
+        if (!$accounting = $this->accountingPeriod->find($id)) {
+            $data = data(BAD_REQUEST, 'Registro no pudo ser eliminado');
+            return $this->respond($data, BAD_REQUEST);
+        }
+
+        //explore the object
+        $dailyMovement = $this->dailyMovement->where('id_period', $id)->get();
+        if ($dailyMovement) {
+            // delete all daily movements too
+        }
+        
+        $accounting->deleted_by = $user_id;
+        $this->accountingPeriod->save($accounting);
+
+        // deleted accounting period in the database
+        // soft delete is enabled
+        if (!$this->accountingPeriod->delete($id)) {
+            // ! No results found
+            $data = data(BAD_REQUEST, 'Registro no pudo ser eliminado');
+            return $this->respond($data, BAD_REQUEST);
+        }
+
+        $data = data(OK, "Registro eliminado correctamente", array());
+            return $this->respond($data);
+        
     }
 }

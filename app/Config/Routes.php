@@ -89,11 +89,11 @@ $routes->group('level', ['namespace' => 'App\Controllers'], function ($routes) {
 //AccountingCatalogsController
 $routes->group('accounting_catalogs', ['namespace' => 'App\Controllers'], function ($routes) {
     $routes->get('/', 'AccountingCatalogsController::index', ['as' => 'view_accounting_catalogs']);
-    $routes->get('create', 'AccountingCatalogsController::create', ['as' => 'new_accounting_catalogs']);
+    // $routes->get('create', 'AccountingCatalogsController::create', ['as' => 'new_accounting_catalogs']);
     $routes->post('create', 'AccountingCatalogsController::store', ['as' => 'store_accounting_catalogs']);
-    $routes->get('edit/(:any)', 'AccountingCatalogsController::edit/$1', ['as' => 'edit_accounting_catalogs']);
-    $routes->post('edit', 'AccountingCatalogsController::update', ['as' => 'update_accounting_catalogs']);
-    $routes->get('delete/(:num)', 'AccountingCatalogsController::destroy/$1', ['as' => 'delete_accounting_catalogs']);
+    // $routes->get('edit/(:any)', 'AccountingCatalogsController::edit/$1', ['as' => 'edit_accounting_catalogs']);
+    $routes->put('/', 'AccountingCatalogsController::update', ['as' => 'update_accounting_catalogs']);
+    $routes->delete('delete/(:num)', 'AccountingCatalogsController::destroy/$1', ['as' => 'delete_accounting_catalogs']);
     $routes->get('info/(:num)', 'AccountingCatalogsController::info/$1', ['as' => 'info_accounting_catalogs']);
     $routes->post('get_catalog', 'AccountingCatalogsController::getCatalog', ['as' => 'get_catalog']);
     $routes->post('get_account_code', 'AccountingCatalogsController::getAccountCode', ['as' => 'get_account_code']);
@@ -105,20 +105,20 @@ $routes->group('daily_movements', ['namespace' => 'App\Controllers'], function (
     $routes->get('create', 'DailyMovementController::create', ['as' => 'new_daily_movement']);
     $routes->post('create', 'DailyMovementController::store', ['as' => 'store_daily_movement']);
     $routes->get('edit/(:any)', 'DailyMovementController::edit/$1', ['as' => 'edit_daily_movement']);
-    $routes->post('edit', 'DailyMovementController::update', ['as' => 'update_daily_movement']);
-    $routes->get('delete/(:num)', 'DailyMovementController::destroy/$1', ['as' => 'delete_daily_movement']);
+    $routes->put('/', 'DailyMovementController::update', ['as' => 'update_daily_movement']);
+    $routes->delete('delete/(:num)', 'DailyMovementController::destroy/$1', ['as' => 'delete_daily_movement']);
     $routes->post('get_correlative', 'DailyMovementController::getCorrelative', ['as' => 'get_correlative']);
 });
 
 //AccountingPeriodController
 $routes->group('accounting_period', ['namespace' => 'App\Controllers'], function ($routes) {
     $routes->get('/', 'AccountingPeriodController::index', ['as' => 'view_accounting_period']);
-    $routes->get('create', 'AccountingPeriodController::create', ['as' => 'new_accounting_period']);
-    $routes->post('create', 'AccountingPeriodController::store', ['as' => 'store_accounting_period']);
-    $routes->get('edit/(:any)', 'AccountingPeriodController::edit/$1', ['as' => 'edit_accounting_period']);
-    $routes->post('edit', 'AccountingPeriodController::update', ['as' => 'update_accounting_period']);
-    $routes->get('delete/(:num)', 'AccountingPeriodController::destroy/$1', ['as' => 'delete_accounting_period']);
-    $routes->get('info/(:num)', 'AccountingPeriodController::info/$1', ['as' => 'info_accounting_period']);
+    // $routes->get('create', 'AccountingPeriodController::create', ['as' => 'new_accounting_period']);
+    $routes->post('/', 'AccountingPeriodController::store', ['as' => 'store_accounting_period']);
+    // $routes->get('edit/(:any)', 'AccountingPeriodController::edit/$1', ['as' => 'edit_accounting_period']);
+    $routes->put('(:num)', 'AccountingPeriodController::update/$1', ['as' => 'update_accounting_period']);
+    $routes->delete('(:num)', 'AccountingPeriodController::destroy/$1', ['as' => 'delete_accounting_period']);
+    $routes->get('(:num)', 'AccountingPeriodController::info/$1', ['as' => 'info_accounting_period']);
 });
 
 /*

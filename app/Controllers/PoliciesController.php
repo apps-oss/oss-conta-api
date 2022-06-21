@@ -44,6 +44,30 @@ class PoliciesController extends ResourceController
         return ["role" => $policies[0][0], "policies" => $result];
     }
 
+    public function index()
+    {
+        // $this->enforcer->addPolicy('admin', 'policies', 'store');
+        // $this->enforcer->addPolicy('admin', 'policies', 'show');
+
+        // Authorization logic
+        $auth = Authorization::verifyToken();
+        if ($auth['hasError']) {
+            return $this->respond($auth['data'], $auth['code']);
+        }
+        // id user
+        $user_id = $auth['data'];
+
+        // el permiso es el nombre de la tabla y la funcion a la que se desea acceder
+        if (!$this->enforcer->enforce($user_id, "policies", "index")) {
+            return $this->respond(data(FORBIDDEN, "No tiene permisos para realizar esta acción"), FORBIDDEN);
+        }
+
+        $roles = $this->enforcer->getAllRoles();
+
+        $data = data(OK, "Roles obtenidos", $roles);
+        return $this->respond($data);
+    }
+
     public function show($role = null)
     {
         // $this->enforcer->addPolicy('admin', 'policies', 'store');

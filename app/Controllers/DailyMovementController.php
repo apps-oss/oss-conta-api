@@ -22,9 +22,17 @@ class DailyMovementController extends ResourceController
      */
     protected $accountingPeriod;
 
+    /**
+     * Instance of the Document Type Model.
+     *
+     * @var App\Models\DocumentTypeModel
+     */
+    protected $documentTypeModel;
+
     public function __construct()
     {
         //session();
+        $this->documentTypeModel = model('DocumentTypeModel');
         $this->dailyMovement = model('DailyMovementsModel');
         $this->accountingPeriod = model('AccountingPeriodModel');
 
@@ -54,7 +62,7 @@ class DailyMovementController extends ResourceController
         }
 
         // Controller Logic
-        $accounting = $this->accountingPeriod->where("status", 0)->first();
+        $accounting = $this->accountingPeriod->where("status", 1)->first();
 
         if (empty($accounting)) {
             // ! No results found
@@ -64,7 +72,9 @@ class DailyMovementController extends ResourceController
 
         $dailyMovements = $accounting->dailyMovements;
 
-        $dataArray = array('period' => $accounting, 'movements' => $dailyMovements);
+        $docTypes = $this->documentTypeModel->findAll();
+
+        $dataArray = array('period' => $accounting, 'movements' => $dailyMovements, 'types' => $docTypes);
         $data = data(OK, 'Datos Devueltos', $dataArray);
         return $this->respond($data, OK);
     }
@@ -132,7 +142,7 @@ class DailyMovementController extends ResourceController
             return $this->respond($data, BAD_REQUEST);
         }
 
-        $accounting = $this->accountingPeriod->where("status", 0)->first();
+        $accounting = $this->accountingPeriod->where("status", 1)->first();
         if (empty($accounting)) {
             $data = data(BAD_REQUEST, 'No existe un periodo contable activo');
             return $this->respond($data, BAD_REQUEST);

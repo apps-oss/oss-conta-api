@@ -135,7 +135,7 @@ class AccountingPeriodController extends ResourceController
         $accounting = new AccountingPeriod($accounting);
 
         if(!$this->accountingPeriod->where('status', 1)->set('status',0)->update()){
-            $data = data(BAD_REQUEST, 'Error al cambiar desactivar los periodos contables anteriores');
+            $data = data(BAD_REQUEST, 'Error al desactivar los periodos contables anteriores');
             return $this->respond($data, BAD_REQUEST);
         }
 

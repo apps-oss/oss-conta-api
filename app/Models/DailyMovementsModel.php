@@ -89,6 +89,8 @@ class DailyMovementsModel extends Model
                     'specific_concept' => $item->specific_concept,
                     'quantity' => $item->quantity,
                     'value' => $item->value,
+                    'reference' => $item->reference,
+                    'document' => $item->document,
                     'movement_type' => $item->movement_type,
                     'created_by' => $this->user_id,
                     'updated_by' => $this->user_id
